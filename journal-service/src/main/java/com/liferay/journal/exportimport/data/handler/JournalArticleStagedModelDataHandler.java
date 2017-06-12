@@ -47,6 +47,7 @@ import com.liferay.portal.kernel.model.Image;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ImageLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
@@ -888,27 +889,59 @@ public class JournalArticleStagedModelDataHandler
 		JournalArticle existingArticle = null;
 
 		if (!preloaded) {
-			JournalArticleResource journalArticleResource =
-				_journalArticleResourceLocalService.
-					fetchJournalArticleResourceByUuidAndGroupId(
-						articleResourceUuid, groupId);
+			JournalArticleResource journalArticleResource = null;
+
+			Group group = _groupLocalService.fetchGroup(groupId);
+
+			while (group != null) {
+				journalArticleResource =
+					_journalArticleResourceLocalService.
+						fetchJournalArticleResourceByUuidAndGroupId(
+							articleResourceUuid, group.getGroupId());
+
+				if (journalArticleResource != null) {
+					break;
+				}
+
+				group = group.getParentGroup();
+			}
 
 			if (journalArticleResource == null) {
 				return null;
 			}
 
 			return _journalArticleLocalService.fetchArticle(
-				groupId, journalArticleResource.getArticleId());
+				group.getGroupId(), journalArticleResource.getArticleId());
 		}
 
 		if (Validator.isNotNull(newArticleId)) {
-			existingArticle = _journalArticleLocalService.fetchArticle(
-				groupId, newArticleId);
+			Group group = _groupLocalService.fetchGroup(groupId);
+
+			while (group != null) {
+				existingArticle = _journalArticleLocalService.fetchArticle(
+					group.getGroupId(), newArticleId);
+
+				if (existingArticle != null) {
+					return existingArticle;
+				}
+
+				group = group.getParentGroup();
+			}
 		}
 
 		if ((existingArticle == null) && Validator.isNull(newArticleId)) {
-			existingArticle = _journalArticleLocalService.fetchArticle(
-				groupId, articleId);
+			Group group = _groupLocalService.fetchGroup(groupId);
+
+			while (group != null) {
+				existingArticle = _journalArticleLocalService.fetchArticle(
+					group.getGroupId(), articleId);
+
+				if (existingArticle != null) {
+					return existingArticle;
+				}
+
+				group = group.getParentGroup();
+			}
 		}
 
 		return existingArticle;
@@ -933,15 +966,35 @@ public class JournalArticleStagedModelDataHandler
 	protected JournalArticle fetchExistingArticleVersion(
 		String articleUuid, long groupId, String articleId, double version) {
 
-		JournalArticle existingArticle = fetchStagedModelByUuidAndGroupId(
-			articleUuid, groupId);
+		JournalArticle existingArticle = null;
 
-		if (existingArticle != null) {
-			return existingArticle;
+		Group group = _groupLocalService.fetchGroup(groupId);
+
+		while (group != null) {
+			existingArticle = fetchStagedModelByUuidAndGroupId(
+				articleUuid, group.getGroupId());
+
+			if (existingArticle != null) {
+				return existingArticle;
+			}
+
+			group = group.getParentGroup();
 		}
 
-		return _journalArticleLocalService.fetchArticle(
-			groupId, articleId, version);
+		group = _groupLocalService.fetchGroup(groupId);
+
+		while (group != null) {
+			existingArticle = _journalArticleLocalService.fetchArticle(
+				group.getGroupId(), articleId, version);
+
+			if (existingArticle != null) {
+				return existingArticle;
+			}
+
+			group = group.getParentGroup();
+		}
+
+		return null;
 	}
 
 	protected boolean isPreloadedArticle(
@@ -976,6 +1029,11 @@ public class JournalArticleStagedModelDataHandler
 		DDMTemplateLocalService ddmTemplateLocalService) {
 
 		_ddmTemplateLocalService = ddmTemplateLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setGroupLocalService(GroupLocalService groupLocalService) {
+		_groupLocalService = groupLocalService;
 	}
 
 	@Reference(unbind = "-")
@@ -1046,6 +1104,7 @@ public class JournalArticleStagedModelDataHandler
 
 	private DDMStructureLocalService _ddmStructureLocalService;
 	private DDMTemplateLocalService _ddmTemplateLocalService;
+	private GroupLocalService _groupLocalService;
 	private ImageLocalService _imageLocalService;
 	private JournalArticleExportImportContentProcessor
 		_journalArticleExportImportContentProcessor;
