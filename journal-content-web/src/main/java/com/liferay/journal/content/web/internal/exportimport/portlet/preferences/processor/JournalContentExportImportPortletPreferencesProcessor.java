@@ -262,6 +262,17 @@ public class JournalContentExportImportPortletPreferencesProcessor
 				if (importedArticleGroup.isStagedPortlet(
 						JournalPortletKeys.JOURNAL)) {
 
+					Map<String, Long> articleIdsToGroupIds =
+						(Map<String, Long>)
+							portletDataContext.getNewPrimaryKeysMap(
+								JournalArticle.class + ".groupId");
+
+					groupId = MapUtil.getLong(
+						articleIdsToGroupIds, articleId, groupId);
+
+					portletPreferences.setValue(
+						"groupId", String.valueOf(groupId));
+
 					Map<String, String> articleIds =
 						(Map<String, String>)
 							portletDataContext.getNewPrimaryKeysMap(
@@ -271,9 +282,6 @@ public class JournalContentExportImportPortletPreferencesProcessor
 						articleIds, articleId, articleId);
 
 					portletPreferences.setValue("articleId", articleId);
-
-					portletPreferences.setValue(
-						"groupId", String.valueOf(groupId));
 
 					JournalArticle article =
 						_journalArticleLocalService.fetchLatestArticle(

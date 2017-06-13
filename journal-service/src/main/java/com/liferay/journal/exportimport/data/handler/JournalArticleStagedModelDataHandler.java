@@ -423,6 +423,13 @@ public class JournalArticleStagedModelDataHandler
 
 		articleArticleIds.put(articleArticleId, existingArticle.getArticleId());
 
+		Map<String, Long> articleArticleIdsToGroupIds =
+			(Map<String, Long>)portletDataContext.getNewPrimaryKeysMap(
+				JournalArticle.class + ".groupId");
+
+		articleArticleIdsToGroupIds.put(
+			articleArticleId, existingArticle.getGroupId());
+
 		Map<Long, Long> articleIds =
 			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
 				JournalArticle.class);
