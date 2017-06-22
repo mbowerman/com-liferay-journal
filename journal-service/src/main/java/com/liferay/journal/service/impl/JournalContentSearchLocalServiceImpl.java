@@ -93,8 +93,8 @@ public class JournalContentSearchLocalServiceImpl
 				Layout layout = layoutLocalService.getLayout(
 					portletPreferences.getPlid());
 
-				updateContentSearch(
-					layout.getGroupId(), layout.isPrivateLayout(),
+				_addContentSearch(
+					layout.getGroupId(), companyId, layout.isPrivateLayout(),
 					layout.getLayoutId(), portletPreferences.getPortletId(),
 					classPK);
 			}
@@ -249,19 +249,9 @@ public class JournalContentSearchLocalServiceImpl
 		if (contentSearch == null) {
 			Group group = groupLocalService.getGroup(groupId);
 
-			long contentSearchId = counterLocalService.increment();
-
-			contentSearch = journalContentSearchPersistence.create(
-				contentSearchId);
-
-			contentSearch.setGroupId(groupId);
-			contentSearch.setCompanyId(group.getCompanyId());
-			contentSearch.setPrivateLayout(privateLayout);
-			contentSearch.setLayoutId(layoutId);
-			contentSearch.setPortletId(portletId);
-			contentSearch.setArticleId(articleId);
-
-			journalContentSearchPersistence.update(contentSearch);
+			contentSearch = _addContentSearch(
+				groupId, group.getCompanyId(), privateLayout, layoutId,
+				portletId, articleId);
 		}
 
 		return contentSearch;
@@ -286,6 +276,25 @@ public class JournalContentSearchLocalServiceImpl
 		}
 
 		return contentSearches;
+	}
+
+	private JournalContentSearch _addContentSearch(
+		long groupId, long companyId, boolean privateLayout, long layoutId,
+		String portletId, String articleId) {
+
+		long contentSearchId = counterLocalService.increment();
+
+		JournalContentSearch contentSearch =
+			journalContentSearchPersistence.create(contentSearchId);
+
+		contentSearch.setGroupId(groupId);
+		contentSearch.setCompanyId(companyId);
+		contentSearch.setPrivateLayout(privateLayout);
+		contentSearch.setLayoutId(layoutId);
+		contentSearch.setPortletId(portletId);
+		contentSearch.setArticleId(articleId);
+
+		return journalContentSearchPersistence.update(contentSearch);
 	}
 
 	private static final String _INSTANCE_SEPARATOR = "_INSTANCE_";
