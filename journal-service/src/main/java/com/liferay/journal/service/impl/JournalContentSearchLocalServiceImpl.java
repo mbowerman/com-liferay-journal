@@ -19,7 +19,6 @@ import com.liferay.journal.service.base.JournalContentSearchLocalServiceBaseImpl
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.portal.dao.orm.custom.sql.CustomSQLUtil;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.WildcardMode;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
@@ -67,27 +66,7 @@ public class JournalContentSearchLocalServiceImpl
 			_log.info("Checking journal content search for " + companyId);
 		}
 
-		List<Layout> layouts = new ArrayList<>();
-
-		List<Group> groups = groupLocalService.search(
-			companyId, null, null, null, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-
-		for (Group group : groups) {
-
-			// Private layouts
-
-			deleteOwnerContentSearches(group.getGroupId(), true);
-
-			layouts.addAll(
-				layoutLocalService.getLayouts(group.getGroupId(), true));
-
-			// Public layouts
-
-			deleteOwnerContentSearches(group.getGroupId(), false);
-
-			layouts.addAll(
-				layoutLocalService.getLayouts(group.getGroupId(), false));
-		}
+		journalContentSearchPersistence.removeByCompanyId(companyId);
 
 		for (String portletId : _serviceTrackerMap.keySet()) {
 			DisplayInformationProvider displayInformationProvider =
