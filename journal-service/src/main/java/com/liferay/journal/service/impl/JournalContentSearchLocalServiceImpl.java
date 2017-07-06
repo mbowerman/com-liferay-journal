@@ -18,21 +18,21 @@ import com.liferay.journal.model.JournalContentSearch;
 import com.liferay.journal.service.base.JournalContentSearchLocalServiceBaseImpl;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
+import com.liferay.portal.dao.orm.custom.sql.CustomSQLUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.dao.orm.WildcardMode;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.model.LayoutTypePortlet;
-import com.liferay.portal.kernel.model.PortletConstants;
+import com.liferay.portal.kernel.model.PortletPreferences;
 import com.liferay.portal.kernel.portlet.DisplayInformationProvider;
+import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.portlet.PortletPreferences;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -89,36 +89,35 @@ public class JournalContentSearchLocalServiceImpl
 				layoutLocalService.getLayouts(group.getGroupId(), false));
 		}
 
-		for (Layout layout : layouts) {
-			LayoutTypePortlet layoutTypePortlet =
-				(LayoutTypePortlet)layout.getLayoutType();
+		for (String portletId : _serviceTrackerMap.keySet()) {
+			DisplayInformationProvider displayInformationProvider =
+				_serviceTrackerMap.getService(portletId);
 
-			List<String> portletIds = layoutTypePortlet.getPortletIds();
+			List<PortletPreferences> portletPreferencesList =
+				portletPreferencesLocalService.getPortletPreferences(
+					companyId, PortletKeys.PREFS_OWNER_ID_DEFAULT,
+					PortletKeys.PREFS_OWNER_TYPE_LAYOUT,
+					CustomSQLUtil.keywords(
+						portletId.concat(_INSTANCE_SEPARATOR),
+						WildcardMode.TRAILING)[0]);
 
-			for (String portletId : portletIds) {
-				String rootPortletId = PortletConstants.getRootPortletId(
-					portletId);
+			for (PortletPreferences portletPreferences :
+					portletPreferencesList) {
 
-				DisplayInformationProvider displayInformationProvider =
-					_serviceTrackerMap.getService(rootPortletId);
-
-				if (displayInformationProvider == null) {
-					continue;
-				}
-
-				PortletPreferences portletPreferences =
-					portletPreferencesLocalService.getPreferences(
-						layout.getCompanyId(),
-						PortletKeys.PREFS_OWNER_ID_DEFAULT,
-						PortletKeys.PREFS_OWNER_TYPE_LAYOUT, layout.getPlid(),
-						portletId);
+				javax.portlet.PortletPreferences portletPreferencesImpl =
+					PortletPreferencesFactoryUtil.fromDefaultXML(
+						portletPreferences.getPreferences());
 
 				String classPK = displayInformationProvider.getClassPK(
-					portletPreferences);
+					portletPreferencesImpl);
+
+				Layout layout = layoutLocalService.getLayout(
+					portletPreferences.getPlid());
 
 				updateContentSearch(
 					layout.getGroupId(), layout.isPrivateLayout(),
-					layout.getLayoutId(), portletId, classPK);
+					layout.getLayoutId(), portletPreferences.getPortletId(),
+					classPK);
 			}
 		}
 	}
@@ -309,6 +308,8 @@ public class JournalContentSearchLocalServiceImpl
 
 		return contentSearches;
 	}
+
+	private static final String _INSTANCE_SEPARATOR = "_INSTANCE_";
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		JournalContentSearchLocalServiceImpl.class);
