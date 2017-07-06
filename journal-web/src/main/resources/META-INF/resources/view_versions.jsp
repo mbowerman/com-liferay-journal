@@ -71,7 +71,7 @@ String searchContainerId = ParamUtil.getString(request, "searchContainerId");
 				</liferay-ui:search-container-column-text>
 
 				<liferay-ui:search-container-column-jsp
-					path="/article_version_action.jsp"
+					path="/article_action.jsp"
 				/>
 			</c:when>
 			<c:when test='<%= displayStyle.equals("icon") %>'>
@@ -89,7 +89,7 @@ String searchContainerId = ParamUtil.getString(request, "searchContainerId");
 					<c:choose>
 						<c:when test="<%= Validator.isNotNull(articleImageURL) %>">
 							<liferay-frontend:vertical-card
-								actionJsp="/article_version_action.jsp"
+								actionJsp="/article_action.jsp"
 								actionJspServletContext="<%= application %>"
 								imageUrl="<%= articleImageURL %>"
 								resultRow="<%= row %>"
@@ -101,7 +101,7 @@ String searchContainerId = ParamUtil.getString(request, "searchContainerId");
 						</c:when>
 						<c:otherwise>
 							<liferay-frontend:icon-vertical-card
-								actionJsp="/article_version_action.jsp"
+								actionJsp="/article_action.jsp"
 								actionJspServletContext="<%= application %>"
 								icon="web-content"
 								resultRow="<%= row %>"
@@ -155,7 +155,7 @@ String searchContainerId = ParamUtil.getString(request, "searchContainerId");
 				/>
 
 				<liferay-ui:search-container-column-jsp
-					path="/article_version_action.jsp"
+					path="/article_action.jsp"
 				/>
 			</c:when>
 		</c:choose>
