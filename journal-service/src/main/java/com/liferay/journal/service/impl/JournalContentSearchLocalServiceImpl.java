@@ -68,6 +68,8 @@ public class JournalContentSearchLocalServiceImpl
 
 		journalContentSearchPersistence.removeByCompanyId(companyId);
 
+		journalContentSearchPersistence.flush();
+
 		for (String portletId : _serviceTrackerMap.keySet()) {
 			DisplayInformationProvider displayInformationProvider =
 				_serviceTrackerMap.getService(portletId);
