@@ -397,6 +397,24 @@ public class JournalArticleExportImportContentProcessor
 						_journalArticleLocalService.fetchLatestArticle(classPK);
 
 					if (journalArticle == null) {
+						if (ExportImportThreadLocal.isImportInProcess()) {
+							if (_log.isDebugEnabled()) {
+								StringBundler sb = new StringBundler(7);
+
+								sb.append("An invalid web content article ");
+								sb.append("was detected during import when ");
+								sb.append("validating the content below. ");
+								sb.append("This is not an error, it ");
+								sb.append("typically means the web content ");
+								sb.append("article was deleted.\n");
+								sb.append(content);
+
+								_log.debug(sb.toString());
+							}
+
+							return;
+						}
+
 						NoSuchArticleException nsae =
 							new NoSuchArticleException(
 								StringBundler.concat(
