@@ -184,7 +184,7 @@ public class JournalArticleExportImportContentProcessor
 					sb.append(type);
 
 					sb.append(" was detected during import when validating ");
-					sb.append("the content below. This is not an error, it ");
+					sb.append("the content below. This is not an error; it ");
 					sb.append("typically means the ");
 					sb.append(type);
 					sb.append(" was deleted.\n");
@@ -404,7 +404,7 @@ public class JournalArticleExportImportContentProcessor
 								sb.append("An invalid web content article ");
 								sb.append("was detected during import when ");
 								sb.append("validating the content below. ");
-								sb.append("This is not an error, it ");
+								sb.append("This is not an error; it ");
 								sb.append("typically means the web content ");
 								sb.append("article was deleted.\n");
 								sb.append(content);
