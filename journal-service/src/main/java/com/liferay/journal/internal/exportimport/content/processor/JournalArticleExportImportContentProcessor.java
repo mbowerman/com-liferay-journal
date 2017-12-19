@@ -286,9 +286,40 @@ public class JournalArticleExportImportContentProcessor
 				dynamicContentElement.addCDATA(journalArticleReference);
 
 				if (exportReferencedContent) {
-					StagedModelDataHandlerUtil.exportReferenceStagedModel(
-						portletDataContext, stagedModel, journalArticle,
-						PortletDataContext.REFERENCE_TYPE_DEPENDENCY);
+					try {
+						StagedModelDataHandlerUtil.exportReferenceStagedModel(
+							portletDataContext, stagedModel, journalArticle,
+							PortletDataContext.REFERENCE_TYPE_DEPENDENCY);
+					}
+					catch (Exception e) {
+						if (_log.isInfoEnabled() || _log.isDebugEnabled()) {
+							StringBundler messageSB = new StringBundler(
+								Validator.isNotNull(e.getMessage()) ? 12 : 10);
+
+							messageSB.append("Staged model with class name ");
+							messageSB.append(stagedModel.getModelClassName());
+							messageSB.append(" and primary key ");
+							messageSB.append(stagedModel.getPrimaryKeyObj());
+							messageSB.append(" references journal article ");
+							messageSB.append("with class primary key ");
+							messageSB.append(classPK);
+							messageSB.append(" that could not be exported ");
+							messageSB.append("due to ");
+							messageSB.append(e);
+
+							if (Validator.isNotNull(e.getMessage())) {
+								messageSB.append(": ");
+								messageSB.append(e.getMessage());
+							}
+
+							if (_log.isDebugEnabled()) {
+								_log.debug(messageSB.toString(), e);
+							}
+							else {
+								_log.info(messageSB.toString());
+							}
+						}
+					}
 				}
 				else {
 					Element entityElement =
